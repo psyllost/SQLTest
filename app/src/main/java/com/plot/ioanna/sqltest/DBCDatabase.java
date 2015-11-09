@@ -16,6 +16,7 @@ import android.util.Log;
 import com.google.common.base.Joiner;
 import com.readystatesoftware.sqliteasset.SQLiteAssetHelper;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -30,7 +31,7 @@ public class DBCDatabase extends SQLiteAssetHelper {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
-    public Cursor getBooks(String userClass, List<String> hasRead) {
+    public ArrayList getBooks(String userClass, List<String> hasRead) {
         String hasReadString = "";
         for (String s : hasRead)
         {
@@ -41,8 +42,17 @@ public class DBCDatabase extends SQLiteAssetHelper {
                 rawQuery("select 0 _id, book_id from Books where user_class LIKE '%" +userClass+ "%'" +
                         " AND book_id NOT IN ("+hasReadString+")",null);
         Log.i("cursor","  "+ c.getCount());
-        c.moveToFirst();
-        return c;
+        int counter = 0;
+        ArrayList bookList = new ArrayList();
+        if (c != null) {
+            if (c.moveToFirst()) {
+                do {
+                    bookList.add(c.getString(c.getColumnIndex("book_id"))); // "Title" is the field name(column) of the Table
+                    counter ++;
+                } while (c.moveToNext() && counter <20);
+            }
+        }
+        return bookList;
     }
 
 }

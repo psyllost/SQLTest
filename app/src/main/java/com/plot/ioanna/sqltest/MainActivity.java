@@ -1,5 +1,6 @@
 package com.plot.ioanna.sqltest;
 
+import android.app.Activity;
 import android.app.ListActivity;
 import android.content.AsyncTaskLoader;
 import android.content.Context;
@@ -12,14 +13,18 @@ import android.view.View;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
+import android.widget.TextView;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
-public class MainActivity extends ListActivity {
+public class MainActivity extends Activity {
     private Cursor books;
     private DBCDatabase db;
+    private BookFromXml xmlResponse;
+    TextView textView;
     MainActivity mListActivity;
     List<String> randomBooks= Arrays.asList("870970-basis:27069703", "870970-basis:51039629", "870970-basis:50653463");
     String userClass="2";
@@ -27,30 +32,31 @@ public class MainActivity extends ListActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mListActivity=this;
+        setContentView(R.layout.activity_main);
+        textView = (TextView) findViewById(R.id.textView);
         db = new DBCDatabase(this);
+        xmlResponse = new BookFromXml(this);
         DatabaseTask task = new DatabaseTask();
-        task.execute(this);
+        task.execute();
 
     }
     private class DatabaseTask extends AsyncTask {
 
         @Override
-        protected void onPostExecute(Object books) {
-            super.onPostExecute(books);
-            ListAdapter adapter =new SimpleCursorAdapter(mListActivity,
-                    android.R.layout.simple_list_item_1,
-                    (Cursor) books,
-                    new String[]{"book_id"},
-                    new int[] {android.R.id.text1});
-            mListActivity.setListAdapter(adapter);
-
-            mListActivity.getListView();
+        protected void onPostExecute(Object response) {
+            super.onPostExecute(response);
         }
 
         @Override
-        protected Object doInBackground(Object[] params) {
-            Cursor books  = db.getBooks(userClass, randomBooks);
-            return books;
+        protected String[] doInBackground(Object[] params) {
+            ArrayList books = db.getBooks(userClass, randomBooks);
+            String[] response = new String[0];
+            for (int j = 0; j < books.size(); j++) {
+                response = xmlResponse.consumeWebService((String) books.get(j));
+                Log.i("BOOK", (String) books.get(j));
+            }
+            Log.i("XMLRESPONSE", response[0]);
+            return response;
         }
     }
 
