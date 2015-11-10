@@ -18,45 +18,40 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import structure.Book;
+
 /**
  * Created by Ioanna on 10/31/2015.
  */
 public class BookFromXml {
-    //private static BookFromXml instance = new BookFromXml();
-
-    public BookFromXml(){
-    }
 
     public BookFromXml(MainActivity mainActivity) {
     }
 
-//    public BookFromXml getInstance(){
-//        return instance;
-//    }
+    public Book createBookFromXMLResponse(Map<String,String> bookResponse) {
+        Book.BookBuilder builder=new Book.BookBuilder();
+        Book book=builder.title(bookResponse.get("title")).author(bookResponse.get("author"))
+                .description(bookResponse.get("abstract")).date(bookResponse.get("date"))
+                .genre(bookResponse.get("subjects")).build();
+        return book;
+    }
 
-    //@Override
-//    public Book createBookFromXMLResponse(String bookid) {
-//        Book.BookBuilder builder=new Book.BookBuilder();
-//        String[] response=consumeWebService(bookid);
-//        Book book=builder.title(response[0]).author(response[1]).description(response[2]).date(response[3]).genre(response[4]).build();
-//        return book;
-//    }
-
-
-
-    public String[] consumeWebService(String bookid)
+    public HashMap<String,String> consumeWebService(String bookid)
     {
         String DBCURL = "http://oss-services.dbc.dk/opensearch/?action=search&query={query}&agency=100200&profile=test&start=1&stepValue=5";
         DocumentBuilderFactory factory;
         DocumentBuilder builder;
         InputStream is;
         Document dom;
+        HashMap<String, String> bookValues = new HashMap<String, String>();
         String bookAuthor = "", bookAbstract = "", bookSubjects = "", bookTitle = "", bookDate="";
 
         RestTemplate restTemplate = new RestTemplate();
@@ -72,10 +67,19 @@ public class BookFromXml {
             dom = builder.parse(is);
 
             bookTitle = getTagContent("dc:title", dom);
+            bookValues.put("title", bookTitle);
+
             bookAuthor = getTagContent("dc:creator",dom);
+            bookValues.put("author", bookAuthor);
+
             bookAbstract = getTagContent("dcterms:abstract",dom);
+            bookValues.put("abstract", bookAbstract);
+
             bookDate = getTagContent("dc:date", dom);
+            bookValues.put("date", bookDate);
+
             bookSubjects = getSubjects("dc:subject", dom);
+            bookValues.put("subjects", bookSubjects);
 
         } catch (ParserConfigurationException e) {
             e.printStackTrace();
@@ -84,7 +88,7 @@ public class BookFromXml {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return new String[]{bookTitle, bookAuthor, bookAbstract, bookDate, bookSubjects};
+        return bookValues;
     }
 
     public String getTagContent(String tagName, Document dom){

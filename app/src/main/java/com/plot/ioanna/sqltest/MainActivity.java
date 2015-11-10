@@ -17,8 +17,12 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+
+import structure.Book;
 
 public class MainActivity extends Activity {
     private Cursor books;
@@ -26,7 +30,11 @@ public class MainActivity extends Activity {
     private BookFromXml xmlResponse;
     TextView textView;
     MainActivity mListActivity;
+    Book book;
+    //this is a list of books that the user has read
     List<String> randomBooks= Arrays.asList("870970-basis:27069703", "870970-basis:51039629", "870970-basis:50653463");
+    HashMap<String, String> bookInfo = new HashMap<String, String>();
+    //this is the class that the user belongs to
     String userClass="2";
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -48,14 +56,18 @@ public class MainActivity extends Activity {
         }
 
         @Override
-        protected String[] doInBackground(Object[] params) {
+        protected List<Map<String, String>> doInBackground(Object[] params) {
+
             ArrayList books = db.getBooks(userClass, randomBooks);
-            String[] response = new String[0];
+            List<Map<String, String>> response = new ArrayList<Map<String, String>>();
             for (int j = 0; j < books.size(); j++) {
-                response = xmlResponse.consumeWebService((String) books.get(j));
+                response.add(xmlResponse.consumeWebService((String) books.get(j)));
+                book = xmlResponse.createBookFromXMLResponse(response.get(j));
                 Log.i("BOOK", (String) books.get(j));
             }
-            Log.i("XMLRESPONSE", response[0]);
+            for (Map<String, String> map : response) {
+                Log.i("XMLRESPONSE", map.get("title"));
+            }
             return response;
         }
     }
