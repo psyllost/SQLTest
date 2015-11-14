@@ -28,6 +28,7 @@ public class MainActivity extends Activity {
     private Cursor books;
     private DBCDatabase db;
     private BookFromXml xmlResponse;
+    private GoogleApiRequest imageLink;
     TextView textView;
     MainActivity mListActivity;
     Book book;
@@ -35,7 +36,8 @@ public class MainActivity extends Activity {
     List<String> randomBooks= Arrays.asList("870970-basis:27069703", "870970-basis:51039629", "870970-basis:50653463");
     HashMap<String, String> bookInfo = new HashMap<String, String>();
     //this is the class that the user belongs to
-    String userClass="2";
+    String userClass="3";
+    String thumbnail;
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -44,6 +46,7 @@ public class MainActivity extends Activity {
         textView = (TextView) findViewById(R.id.textView);
         db = new DBCDatabase(this);
         xmlResponse = new BookFromXml(this);
+        imageLink = new GoogleApiRequest(this);
         DatabaseTask task = new DatabaseTask();
         task.execute();
 
@@ -58,7 +61,9 @@ public class MainActivity extends Activity {
         @Override
         protected List<Map<String, String>> doInBackground(Object[] params) {
 
-            ArrayList books = db.getBooks(userClass, randomBooks);
+            ArrayList books = new ArrayList();
+            books = db.getBooks(userClass, randomBooks);
+            books.add("870970-basis:45148882");
             List<Map<String, String>> response = new ArrayList<Map<String, String>>();
             for (int j = 0; j < books.size(); j++) {
                 response.add(xmlResponse.consumeWebService((String) books.get(j)));
@@ -66,7 +71,13 @@ public class MainActivity extends Activity {
                 Log.i("BOOK", (String) books.get(j));
             }
             for (Map<String, String> map : response) {
-                Log.i("XMLRESPONSE", map.get("title"));
+                Log.i("XMLRESPONSE", map.get("isbn"));
+                if (map.get("isbn") != null) {
+                    thumbnail = imageLink.getImageLink(map.get("isbn"));
+                    if (thumbnail != null) {
+                        Log.i("THUMBNAIL", thumbnail);
+                    }
+                }
             }
             return response;
         }
