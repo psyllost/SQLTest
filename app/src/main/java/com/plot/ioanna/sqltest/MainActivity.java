@@ -1,24 +1,17 @@
 package com.plot.ioanna.sqltest;
 
 import android.app.Activity;
-import android.app.ListActivity;
-import android.content.AsyncTaskLoader;
-import android.content.Context;
 import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
-import android.widget.ListAdapter;
-import android.widget.ListView;
-import android.widget.SimpleCursorAdapter;
+import android.widget.ImageView;
 import android.widget.TextView;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -37,7 +30,7 @@ public class MainActivity extends Activity {
     HashMap<String, String> bookInfo = new HashMap<String, String>();
     //this is the class that the user belongs to
     String userClass="3";
-    String thumbnail;
+    Bitmap thumbnail;
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -46,7 +39,6 @@ public class MainActivity extends Activity {
         textView = (TextView) findViewById(R.id.textView);
         db = new DBCDatabase(this);
         xmlResponse = new BookFromXml(this);
-        imageLink = new GoogleApiRequest(this);
         DatabaseTask task = new DatabaseTask();
         task.execute();
 
@@ -56,14 +48,15 @@ public class MainActivity extends Activity {
         @Override
         protected void onPostExecute(Object response) {
             super.onPostExecute(response);
+            ImageView imageView = (ImageView) findViewById(R.id.imageView);
+            imageView.setImageBitmap((Bitmap) response);
         }
 
         @Override
-        protected List<Map<String, String>> doInBackground(Object[] params) {
-
+        protected Bitmap doInBackground(Object[] params) {
+            Bitmap bitmap = null;
             ArrayList books = new ArrayList();
             books = db.getBooks(userClass, randomBooks);
-            books.add("870970-basis:45148882");
             List<Map<String, String>> response = new ArrayList<Map<String, String>>();
             for (int j = 0; j < books.size(); j++) {
                 response.add(xmlResponse.consumeWebService((String) books.get(j)));
@@ -73,13 +66,15 @@ public class MainActivity extends Activity {
             for (Map<String, String> map : response) {
                 Log.i("XMLRESPONSE", map.get("isbn"));
                 if (map.get("isbn") != null) {
-                    thumbnail = imageLink.getImageLink(map.get("isbn"));
-                    if (thumbnail != null) {
-                        Log.i("THUMBNAIL", thumbnail);
-                    }
+                    thumbnail = GoogleApiRequest.getInstance().getImage(map.get("isbn"));
                 }
             }
-            return response;
+            if (thumbnail != null) {
+                return thumbnail;
+            }
+            else {
+                return null;
+            }
         }
     }
 

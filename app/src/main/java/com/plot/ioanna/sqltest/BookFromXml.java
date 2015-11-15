@@ -7,6 +7,7 @@ package com.plot.ioanna.sqltest;
 //import com.kmpdip.dbcapplication.data.structure.Book;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.util.Log;
 
 import org.springframework.http.converter.xml.SimpleXmlHttpMessageConverter;
@@ -40,9 +41,10 @@ public class BookFromXml {
 
     public Book createBookFromXMLResponse(Map<String,String> bookResponse) {
         Book.BookBuilder builder=new Book.BookBuilder();
+        Bitmap imageLink=GoogleApiRequest.getInstance().getImage(bookResponse.get("isbn"));
         Book book=builder.title(bookResponse.get("title")).author(bookResponse.get("author"))
                 .description(bookResponse.get("abstract")).date(bookResponse.get("date"))
-                .genre(bookResponse.get("subjects")).build();
+                .genre(bookResponse.get("subjects")).image(imageLink).build();
         return book;
     }
 

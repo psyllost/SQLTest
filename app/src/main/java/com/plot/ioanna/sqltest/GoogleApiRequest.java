@@ -1,5 +1,7 @@
 package com.plot.ioanna.sqltest;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.util.Log;
 
 import org.json.JSONArray;
@@ -20,19 +22,22 @@ import java.net.URL;
  */
 public class GoogleApiRequest {
 
-    public GoogleApiRequest(MainActivity mainActivity) {
+    private GoogleApiRequest() {
     }
+    private static GoogleApiRequest mGoogleApiRequest=new GoogleApiRequest();
 
-    public String getImageLink(String isbn)  {
+    public static GoogleApiRequest getInstance(){
+        return mGoogleApiRequest;
+    }
+    public Bitmap getImage(String isbn) {
         String apiUrlString = "https://www.googleapis.com/books/v1/volumes?q=isbn:" + isbn;
         JSONArray jsonBook = getRequest(apiUrlString);
         JSONArray json2;
+        Bitmap bitmap = null;
         JSONObject imageLink = null;
-        String thumbnail="";
+        String thumbnail = "";
         try {
-            //json2 = jsonBook.getJSONArray("items");
-            //Log.i("JSONRESPONSE", String.valueOf(json2));
-            if (jsonBook!=null) {
+            if (jsonBook != null) {
                 for (int i = 0; i < jsonBook.length(); i++) {
                     JSONObject object3 = jsonBook.getJSONObject(i);
                     Log.i("object3", String.valueOf(object3));
@@ -40,17 +45,28 @@ public class GoogleApiRequest {
                     Log.i("imagelink", String.valueOf(imageLink));
                 }
                 thumbnail = (String) imageLink.get("smallThumbnail");
+                URL url = null;
+                url = new URL(thumbnail);
+                bitmap = BitmapFactory.decodeStream(url.openConnection().getInputStream());
+
                 Log.i("thumbnail", thumbnail);
             }
-            return thumbnail;
+            return bitmap;
 
         } catch (JSONException e) {
             e.printStackTrace();
             Log.i("jsonfail", "jsonfail");
             return null;
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+            return null;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
         }
-
     }
+
+
     public JSONArray getRequest(String urlString){
         JSONArray json2;
         try{
